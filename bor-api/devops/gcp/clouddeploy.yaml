@@ -51,7 +51,7 @@ serialPipeline:
       service-name: "bor-api-dev"
       container-name: "bor-api-dev"
       container-concurrency: "8"
-      cloudsql-instances: "yfjq17-dev:northamerica-northeast1:bor-db"
+      cloudsql-instances: "yfjq17-dev:northamerica-northeast1:bor-db-dev"
       service-account: "sa-api@yfjq17-dev.iam.gserviceaccount.com"
  - targetId: yfjq17-test
    profiles: [test]

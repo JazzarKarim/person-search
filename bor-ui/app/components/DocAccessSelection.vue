@@ -23,6 +23,14 @@ feeStore.initFees(
 
 const isStaff = [AccountType.STAFF, AccountType.SBC_STAFF].includes(currentAccount.value.accountType)
 
+// filing history, needed to decide if the entity filed an AR recently
+const { isLoading: loadingLedger, data: ledgerData } = useBusinessQuery().ledger(
+  useRoute().params.businessId as string
+)
+const waitingOnLedger = computed(() =>
+  loadingLedger.value && certOfGoodStandingDependsOnAr(business.value?.legalType)
+)
+
 const getPurchaseItems = () => [
   {
     code: isStaff ? SearchFeeCode.SBSRCH : SearchFeeCode.BSRCH,
@@ -31,13 +39,21 @@ const getPurchaseItems = () => [
   ...(
     !businessStore.isFirm() && business.value?.state === EntityState.ACTIVE
       ? [
-        {
-          code: SearchFeeCode.CGOOD,
-          value: false,
-          disabled: !business.value.goodStanding,
-          tooltip: t('text.theCOGSisOnlyAvailableIf')
-        },
-        { code: SearchFeeCode.CSTAT, value: false }]
+        ...(suppressCertOfGoodStanding(
+          business.value.legalType,
+          hasFiledArInLast12Months(ledgerData.value?.filings)
+        )
+          ? []
+          : [{
+            code: SearchFeeCode.CGOOD,
+            value: false,
+            disabled: !business.value.goodStanding,
+            tooltip: t('text.theCOGSisOnlyAvailableIf')
+          }]),
+        ...(suppressCertOfStatus(business.value.legalType)
+          ? []
+          : [{ code: SearchFeeCode.CSTAT, value: false }])
+      ]
       : []
   ),
   { code: SearchFeeCode.LSEAL, value: false }
@@ -45,7 +61,7 @@ const getPurchaseItems = () => [
 
 const purchaseItems = ref(getPurchaseItems())
 
-watch(() => business.value?.identifier, () => {
+watch([() => business.value?.identifier, () => ledgerData.value?.filings], () => {
   purchaseItems.value = getPurchaseItems()
 })
 
@@ -77,7 +93,7 @@ const addRemoveFee = (item: { code: SearchFeeCode, value: boolean }) => {
   <div>
     <h2>{{ $t('label.availableDocumentsToDownload') }}</h2>
     <UCard class="*:*:space-y-3">
-      <div v-if="!loadingFees">
+      <div v-if="!loadingFees && !waitingOnLedger">
         <UTooltip
           v-for="item, i in purchaseItems"
           :key="i"

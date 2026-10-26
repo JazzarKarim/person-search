@@ -26,7 +26,7 @@ const date = computed(() => {
   return date ? toPacificDateTime(date) : `[${t('text.unknown')}]`
 })
 
-const { setPublicDefault } = useBusinessTombstone()
+const { setPublicDefaultWithDateFallback } = useBusinessTombstoneDateFallback()
 const { setTombstoneStateReason } = useBusinessStateReason()
 
 const { getDocAccessDocument, getDocumentList } = useBusinessSearchApi()
@@ -62,7 +62,7 @@ onMounted(async () => {
     { label: t('label.purchasedDocuments') }
   ])
   useBusinessStore().$reset()
-  setPublicDefault(businessId).then(() => setTombstoneStateReason())
+  setPublicDefaultWithDateFallback(businessId).then(() => setTombstoneStateReason())
   await docAccessStore.init(darId)
   if (![DocAccessStatus.COMPLETED, DocAccessStatus.PAID].includes(docAccess.value?.status as DocAccessStatus)) {
     // Doc access not paid for

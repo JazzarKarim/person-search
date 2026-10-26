@@ -73,7 +73,7 @@ setButtonControl({
   }
 })
 
-const { setPublicDefault } = useBusinessTombstone()
+const { setPublicDefaultWithDateFallback } = useBusinessTombstoneDateFallback()
 const { setTombstoneStateReason } = useBusinessStateReason()
 
 const hiddenAlertTypes = [BusinessAlert.FROZEN, BusinessAlert.DISABLED, BusinessAlert.MISSINGINFO]
@@ -89,7 +89,7 @@ onMounted(async () => {
     { label: businessId }
   ])
   businessStore.$reset()
-  await setPublicDefault(businessId, false)
+  await setPublicDefaultWithDateFallback(businessId, false)
   await setTombstoneStateReason()
 })
 </script>

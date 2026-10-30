@@ -77,7 +77,13 @@ const { setPublicDefault } = useBusinessTombstone()
 const { setTombstoneStateReason } = useBusinessStateReason()
 
 const hiddenAlertTypes = [BusinessAlert.FROZEN, BusinessAlert.DISABLED, BusinessAlert.MISSINGINFO]
-const alerts = computed(() => businessAlerts.value?.filter(val => !hiddenAlertTypes.includes(val.type)) || [])
+const alerts = computed(() => {
+  const hideGoodStanding = suppressGoodStandingAlert(business.value?.legalType, business.value?.state)
+  return businessAlerts.value?.filter(val =>
+    !hiddenAlertTypes.includes(val.type)
+    && !(hideGoodStanding && val.alertType === BusinessAlert.GOODSTANDING)
+  ) || []
+})
 
 onMounted(async () => {
   fees.value = {}
